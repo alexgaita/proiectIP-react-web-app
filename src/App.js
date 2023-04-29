@@ -14,7 +14,6 @@ const firebaseConfig = {
 function App() {
   
   const app = initializeApp(firebaseConfig);
-
   return (
     <div className="App">
       <header className="App-header">
