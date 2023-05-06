@@ -3,7 +3,10 @@ import { initializeApp } from 'firebase/app'
 import PacientsList from './components/PacientsList/PacientsList'
 import { getFirestore } from 'firebase/firestore'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+
 import MedicalRecord from './components/MedicalRecord/MedicalRecord'
+import LogIn from "./components/Login/Login";
+import Register from "./components/Register/Register";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -56,10 +59,12 @@ function App() {
         <Routes>
           <Route element={<PacientsList />} path="/pacients" />
           <Route element={<MedicalRecord />} path="/pacients/:id" />
+          <Route element={<LogIn/>} path="/login"/>
+          <Route element={<Register/>} path="/register"/>
         </Routes>
       </BrowserRouter>
     </div>
   )
 }
 
-export default App
+export default App;
