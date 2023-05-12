@@ -1,42 +1,49 @@
-import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { Grid, TextField, Typography, Button, Box, Link } from "@mui/material";
-import { auth } from "../../App";
+import React, { useState } from 'react'
+import { NavLink, useNavigate } from 'react-router-dom'
+import { signInWithEmailAndPassword} from 'firebase/auth'
+import { Grid, TextField, Typography, Button, Box, Link } from '@mui/material'
+
+import { auth } from '../../App'
 
 const LogIn = () => {
   const [inputFields, setInputFields] = useState([
     {
-      email: "",
-      password: "",
+      email: '',
+      password: '',
     },
-  ]);
-  const [error, setError] = useState(false);
+  ])
+  const [error, setError] = useState(false)
+  const navigate = useNavigate()
+
   const logInWithEmailAndPassword = async () => {
     try {
-      console.log(inputFields);
+      console.log(inputFields)
       await signInWithEmailAndPassword(
         auth,
         inputFields.email,
         inputFields.password
-      );
-      alert("Success!");
+      )
+      // TODO: check if user is medic / pacient
+      navigate('/pacients')
     } catch (err) {
-      setError(true);
-      console.error(err);
+      setError(true)
+      console.error(err)
     }
-  };
+  }
+
+  const redirectToRegister = async () => {
+    navigate('/register')
+  }
 
   return (
     <Grid
       container
       display="flex"
       sx={{
-        alignItems: "center",
-        justifyContent: "center",
-        width: "100vw",
-        height: "100vh",
-        backgroundColor: "#C4D3D9"
+        alignItems: 'center',
+        justifyContent: 'center',
+        width: '100vw',
+        height: '100vh',
       }}
     >
       <Grid
@@ -44,11 +51,12 @@ const LogIn = () => {
         display="flex"
         flexDirection="column"
         sx={{
-          border: "1px solid black",
-          height: "70%",
+          height: '70%',
           p: 2,
-          borderRadius: "25px",
-          backgroundColor: "whitesmoke"
+          borderRadius: '25px',
+          backgroundColor: 'whitesmoke',
+          border: '1px solid rgba(217, 217, 217, 0.5)',
+          boxShadow: '4px 4px 4px rgba(0, 0, 0, 0.25)',
         }}
         xs={4}
         justifyContent="space-around"
@@ -56,11 +64,11 @@ const LogIn = () => {
         <Typography
           align="center"
           sx={{
-            fontFamily: "sans-serif",
-            fontWeight: "700",
-            fontSize: "43px",
-            color: "#035270",
-            textShadow: "0px 4px 4px rgba(3, 90, 124, 0.5)",
+            fontFamily: 'sans-serif',
+            fontWeight: '700',
+            fontSize: '43px',
+            color: '#035270',
+            textShadow: '0px 2px 2px rgba(3, 90, 124, 0.5)',
           }}
         >
           LOGIN
@@ -70,11 +78,10 @@ const LogIn = () => {
           label="Email"
           variant="outlined"
           size="small"
-          helperText={error ? "Wrong credentials" : ""}
+          helperText={error ? 'Wrong credentials' : ''}
           error={error}
-          sx={{background: "rgba(217, 217, 217, 0.5)", borderRadius: "10px"}}
           onChange={(event) => {
-            setInputFields({ ...inputFields, email: event.target.value });
+            setInputFields({ ...inputFields, email: event.target.value })
           }}
         ></TextField>
         <TextField
@@ -84,31 +91,58 @@ const LogIn = () => {
           variant="outlined"
           size="small"
           error={error}
-          sx={{background: "rgba(217, 217, 217, 0.5)", borderRadius: "10px"}}
           onChange={(event) => {
-            setInputFields({ ...inputFields, password: event.target.value });
+            setInputFields({ ...inputFields, password: event.target.value })
           }}
         ></TextField>
-        <Link href="#" underline="none" sx={{ alignSelf: "flex-end", color:"#035270" }}>
-          {"Forgot password?"}
+        <Link
+          href="#"
+          underline="none"
+          sx={{ alignSelf: 'flex-end', color: '#035270' }}
+        >
+          {'Forgot password?'}
         </Link>
         <Button
           variant="contained"
           onClick={logInWithEmailAndPassword}
-          sx={{ color: "#035270", backgroundColor: "#F27D70",
-          '&:hover': {
-            backgroundColor: '#f69c76',
-            color: '#3c52b2', }}}
+          sx={{
+            color: '#035270',
+            backgroundColor: '#F27D70',
+            '&:hover': {
+              backgroundColor: '#f69c76',
+              color: '#3c52b2',
+            },
+          }}
         >
           Log In
         </Button>
         <Box display="flex" justifyContent="space-between">
-          <Typography sx={{fontFamily: "sans-serif", fontStyle: "italic", fontWeight: "700", color: "#035270"}}>Don't you have a doctor account?</Typography>
-          <Link href="#" underline="none" sx={{color:"#F27D70", fontFamily: "sans-serif", fontWeight: "700"}}>Create Account</Link>
+          <Typography
+            sx={{
+              fontFamily: 'sans-serif',
+              fontStyle: 'italic',
+              fontWeight: '700',
+              color: '#035270',
+            }}
+          >
+            Don't you have a doctor account?
+          </Typography>
+          <Link
+            href="#"
+            underline="none"
+            sx={{
+              color: '#F27D70',
+              fontFamily: 'sans-serif',
+              fontWeight: '700',
+            }}
+            onClick={redirectToRegister}
+          >
+            Create Account
+          </Link>
         </Box>
       </Grid>
     </Grid>
-  );
-};
+  )
+}
 
-export default LogIn;
+export default LogIn
