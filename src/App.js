@@ -8,6 +8,7 @@ import { getAuth } from 'firebase/auth'
 
 import MedicalRecord from './components/MedicalRecord/MedicalRecord'
 import LogIn from './components/Login/Login'
+import ForgotPassword from './components/Login/ForgotPassword'
 import Register from './components/Register/Register'
 import {
   Chart as ChartJS,
@@ -75,6 +76,7 @@ function App() {
           <Route element={<PacientsList />} path="/pacients" />
           <Route element={<MedicalRecord />} path="/pacients/:id" />
           <Route element={<LogIn />} path="/login" />
+          <Route element={<ForgotPassword/>} path="/forgot-password"/>
           <Route element={<Register />} path="/register" />
         </Routes>
       </BrowserRouter>

@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { signInWithEmailAndPassword} from 'firebase/auth'
+import { useNavigate } from 'react-router-dom'
+import { signInWithEmailAndPassword } from 'firebase/auth'
 import { Grid, TextField, Typography, Button, Box, Link } from '@mui/material'
 
 import { auth } from '../../App'
@@ -99,6 +99,9 @@ const LogIn = () => {
           href="#"
           underline="none"
           sx={{ alignSelf: 'flex-end', color: '#035270' }}
+          onClick={() => {
+            navigate('/forgot-password')
+          }}
         >
           {'Forgot password?'}
         </Link>

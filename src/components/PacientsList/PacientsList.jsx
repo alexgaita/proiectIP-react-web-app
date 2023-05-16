@@ -33,8 +33,8 @@ const PacientsList = () => {
     setModalOpen(false)
   }
 
-  const logOut = () => {
-    signOut(auth);
+  const logOut = async () => {
+    await signOut(auth);
     navigate('/login')
     var user = auth.currentUser
     console.log(user)
