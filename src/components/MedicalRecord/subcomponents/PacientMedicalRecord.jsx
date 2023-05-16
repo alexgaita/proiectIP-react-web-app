@@ -22,7 +22,7 @@ const data = {
   datasets: [
     {
       label: 'EKG',
-      data: [100, 200, 10, 40, 50, 90, 200],
+      data: [100, 200, 10, 40, 50, 90, 180],
       borderColor: 'rgb(255, 99, 132)',
       backgroundColor: 'rgba(255, 99, 132, 0.5)',
     },

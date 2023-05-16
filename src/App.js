@@ -1,9 +1,15 @@
 import './App.css'
 import { initializeApp } from 'firebase/app'
+
 import PacientsList from './components/PacientsList/PacientsList'
 import { getFirestore } from 'firebase/firestore'
-import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
+import { getAuth } from 'firebase/auth'
+
 import MedicalRecord from './components/MedicalRecord/MedicalRecord'
+import LogIn from './components/Login/Login'
+import ForgotPassword from './components/Login/ForgotPassword'
+import Register from './components/Register/Register'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,8 +41,19 @@ const firebaseConfig = {
 }
 
 const app = initializeApp(firebaseConfig)
+export const auth = getAuth(app)
 export const db = getFirestore(app)
 function App() {
+  const checkUserLoggedIn = () => {
+    var user = auth.currentUser
+    console.log(user)
+    if (user) {
+      return <Navigate to="/pacients" replace />
+    } else {
+      return <Navigate to="/login" replace />
+    }
+  }
+
   return (
     <div
       className="App"
@@ -54,8 +71,13 @@ function App() {
       {' '}
       <BrowserRouter>
         <Routes>
+          <Route path="/" element={checkUserLoggedIn()} />
+
           <Route element={<PacientsList />} path="/pacients" />
           <Route element={<MedicalRecord />} path="/pacients/:id" />
+          <Route element={<LogIn />} path="/login" />
+          <Route element={<ForgotPassword/>} path="/forgot-password"/>
+          <Route element={<Register />} path="/register" />
         </Routes>
       </BrowserRouter>
     </div>

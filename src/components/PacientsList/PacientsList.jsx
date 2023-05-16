@@ -1,16 +1,21 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState} from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Box, Button, Grid, IconButton, Typography } from '@mui/material'
 import PacientRow from './subcomponents/PacientRow'
 import AddIcon from '@mui/icons-material/Add'
 import LogoutIcon from '@mui/icons-material/Logout'
 import CreateModal from './subcomponents/CreateModal'
-import { db } from '../../App'
+import { db, auth } from '../../App'
 import { collection, getDocs } from 'firebase/firestore'
+import { signOut } from 'firebase/auth';
+
 
 const PacientsList = () => {
   const [modalOpen, setModalOpen] = useState(false)
   const [pacients, setPacients] = useState(null)
   const [reset, setReset] = useState(false)
+
+  const navigate = useNavigate()
 
   const fetchPacients = async () => {
     const querySnapshot = await getDocs(collection(db, 'pacients'))
@@ -26,6 +31,13 @@ const PacientsList = () => {
   const handleOnClose = (reset) => {
     if (reset) setReset(true)
     setModalOpen(false)
+  }
+
+  const logOut = async () => {
+    await signOut(auth);
+    navigate('/login')
+    var user = auth.currentUser
+    console.log(user)
   }
 
   useEffect(() => {
@@ -55,7 +67,7 @@ const PacientsList = () => {
         <CreateModal open={modalOpen} handleOnClose={handleOnClose} />
       )}
       <Box display={'flex'} alignSelf={'flex-end'} mr={5}>
-        <Button variant={'outlined'} startIcon={<LogoutIcon />}>
+        <Button variant={'outlined'} startIcon={<LogoutIcon />} onClick={logOut}>
           <Typography variant={'subtitle1'}>Log out</Typography>
         </Button>
       </Box>
@@ -81,7 +93,7 @@ const PacientsList = () => {
         container
         className={'pacientsList'}
         sx={{
-          border: '1px solid black',
+          border: "1px solid rgba(217, 217, 217, 0.5)",
           minHeight: '70%',
           maxHeight: '70%',
           padding: 5,
