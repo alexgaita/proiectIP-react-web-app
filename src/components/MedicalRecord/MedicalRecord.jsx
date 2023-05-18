@@ -11,6 +11,8 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { signOut } from 'firebase/auth'
 import PacientActivities from './subcomponents/PacientActivities'
 
+import { auth } from '../../App'
+
 const MedicalRecord = ({ isMedic }) => {
   let { id } = useParams()
 
@@ -39,6 +41,7 @@ const MedicalRecord = ({ isMedic }) => {
     setActivities(response)
     console.log(response)
   }
+  const navigate = useNavigate()
 
   useEffect(() => {
     if (isMedic) {
@@ -102,8 +105,15 @@ const MedicalRecord = ({ isMedic }) => {
         justifyContent={'flex-end'}
         flexDirection={'column'}
       >
-        <Button onClick={logOut} sx={{ alignSelf: 'flex-end', mr: 3 }}>
-          <Typography>LogOut</Typography>
+        <Button
+          sx={{ alignSelf: 'flex-end', mr: 3 }}
+          variant='outlined'
+          startIcon={<LogoutIcon />}
+          onClick={logOut}
+        >
+          <Typography variant={'subtitle1'} sx={{
+            color: '#035270'
+          }}>Log out</Typography>
         </Button>
 
         <Box
