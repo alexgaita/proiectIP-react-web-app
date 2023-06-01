@@ -10,8 +10,8 @@ import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { signOut } from 'firebase/auth'
 import PacientActivities from './subcomponents/PacientActivities'
+import LogoutIcon from '@mui/icons-material/Logout'
 
-import { auth } from '../../App'
 
 const MedicalRecord = ({ isMedic }) => {
   let { id } = useParams()
@@ -41,7 +41,6 @@ const MedicalRecord = ({ isMedic }) => {
     setActivities(response)
     console.log(response)
   }
-  const navigate = useNavigate()
 
   useEffect(() => {
     if (isMedic) {
