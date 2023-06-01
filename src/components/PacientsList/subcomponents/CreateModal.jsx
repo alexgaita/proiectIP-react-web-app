@@ -1,6 +1,6 @@
 import { Box, Button, Modal, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
-import { setDoc, doc } from 'firebase/firestore'
+import { setDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../../App'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -20,8 +20,8 @@ const defaultModalData = {
   allergies: '',
 }
 
-const CreateModal = ({ open, handleOnClose }) => {
-  const [formData, setFormDate] = useState(defaultModalData)
+const CreateModal = ({ open, handleOnClose, updateData, isMedic }) => {
+  const [formData, setFormDate] = useState(updateData || defaultModalData)
   const [errorArray, setErrorArray] = useState([])
 
   const handleChangeData = (value, fieldName) => {
@@ -35,6 +35,10 @@ const CreateModal = ({ open, handleOnClose }) => {
 
   const addPacient = async () => {
     await setDoc(doc(db, 'pacients', uuidv4()), formData)
+  }
+
+  const updatePacient = async () => {
+    await updateDoc(doc(db, 'pacients', updateData.id), formData)
   }
 
   const submitFormData = async () => {
@@ -52,13 +56,24 @@ const CreateModal = ({ open, handleOnClose }) => {
     setErrorArray(errors)
     if (errors.length) return
 
-    await addPacient()
+    if (updateData) {
+      await updatePacient()
+    } else {
+      await addPacient()
+    }
+
     handleOnClose(true)
   }
 
   // useEffect(() => {
   //   console.log(formData)
   // }, [formData])
+
+  const renderTitle = () => {
+    if (!isMedic) return 'Update Info'
+    if (updateData) return 'Update Pacient Info'
+    return 'Add new Pacient'
+  }
 
   return (
     <Modal open={open} onClose={handleOnClose}>
@@ -85,7 +100,7 @@ const CreateModal = ({ open, handleOnClose }) => {
         spacing={3}
       >
         <Box pb={2}>
-          <Typography variant={'h6'}>Add New Pacient</Typography>
+          <Typography variant={'h6'}>{renderTitle()}</Typography>
         </Box>
         <Box display={'flex'} gap={2}>
           <Box display={'flex'} flexDirection={'column'} flexGrow={1}>

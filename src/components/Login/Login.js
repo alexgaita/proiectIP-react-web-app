@@ -23,8 +23,6 @@ const LogIn = () => {
         inputFields.email,
         inputFields.password
       )
-      // TODO: check if user is medic / pacient
-      navigate('/pacients')
     } catch (err) {
       setError(true)
       console.error(err)

@@ -1,66 +1,80 @@
 import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import { Grid, Typography, Box, Button, Divider } from '@mui/material'
+import { Grid, Typography, Box, Button } from '@mui/material'
 import PacientInfo from './subcomponents/PacientInfo'
-import { doc, getDoc } from 'firebase/firestore'
-import { db } from '../../App'
+import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
+import { auth, db } from '../../App'
 import PacientMedicalRecord from './subcomponents/PacientMedicalRecord'
-import LogoutIcon from '@mui/icons-material/Logout'
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
+import { signOut } from 'firebase/auth'
+import PacientActivities from './subcomponents/PacientActivities'
 
-const MedicalRecord = () => {
+const MedicalRecord = ({ isMedic }) => {
   let { id } = useParams()
-  const [pacientData, setPacientData] = useState(null)
 
-  const fetchPacient = async () => {
-    const pacientResponse = await getDoc(doc(db, 'pacients', id))
-    setPacientData(pacientResponse.data())
+  const [pacientData, setPacientData] = useState(null)
+  const [activities, setActivities] = useState(null)
+  const [reset, setReset] = useState(false)
+  const [date, setDate] = useState(dayjs())
+
+  const fetchPacient = async (pacientId) => {
+    const pacientResponse = await getDoc(doc(db, 'pacients', pacientId))
+    console.log(pacientResponse.data())
+    setPacientData({ ...pacientResponse.data(), id: pacientResponse.id })
+
+    const querySnapshot = await getDocs(
+      collection(db, `pacients`, pacientId, 'activities')
+    )
+    const response = []
+    querySnapshot.forEach((doc) => {
+      // doc.data() is never undefined for query doc snapshots
+      response.push({
+        id: doc.id,
+        ...doc.data(),
+        startTime: dayjs.unix(doc.data().startTime.seconds),
+      })
+    })
+    setActivities(response)
+    console.log(response)
   }
 
   useEffect(() => {
-    fetchPacient()
-  }, [])
+    if (isMedic) {
+      fetchPacient(id)
+      return
+    }
+    if (!auth.currentUser) return
+    fetchPacient(auth.currentUser.uid)
+  }, [id, isMedic])
 
-  const renderActivity = () => {
-    return (
-      <Box
-        display={'flex'}
-        alignItems={'center'}
-        sx={{
-          height: 50,
-          width: '100%',
-          gap: 3,
-          ml: 3,
-        }}
-      >
-        <Box
-          sx={{
-            backgroundColor: 'red',
-            width: '4px',
-            height: '80%',
-            borderRadius: '25px',
-          }}
-        />
-        <Box
-          display={'flex'}
-          flexDirection={'column'}
-          alignItems={'flex-start'}
-        >
-          <Typography color={'white'} fontWeight={700}>
-            Run
-          </Typography>
-          <Typography color={'white'}>Duration: 10mins</Typography>
-        </Box>
-      </Box>
+  useEffect(() => {
+    if (!reset) return
+    setReset(false)
+    if (isMedic) {
+      fetchPacient(id)
+      return
+    }
+    if (!auth.currentUser) return
+    fetchPacient(auth.currentUser.uid)
+  }, [reset])
+
+  const logOut = async () => {
+    await signOut(auth)
+  }
+
+  const filterActivities = () => {
+    if (!activities) return []
+    return activities.filter((activity) =>
+      activity.startTime.isSame(date, 'day')
     )
   }
 
   if (!pacientData) return
 
   return (
-    <Grid container height={'100vh'} width={'100vw'}>
+    <Grid container height={'100%'} width={'100vw'}>
       <Grid
         item
         xs={8}
@@ -72,37 +86,35 @@ const MedicalRecord = () => {
       >
         <Box display={'flex'} flexGrow={1} alignItems={'center'}>
           <Typography fontWeight={700} color={'#035270'} variant={'h4'}>
-            Hello Gaita
+            {isMedic
+              ? `About ${pacientData.firstName} ${pacientData.lastName}`
+              : `Hello ${pacientData.firstName} ${pacientData.lastName}`}
           </Typography>
         </Box>
-        <PacientInfo pacient={pacientData} />
+        <PacientInfo pacient={pacientData} isMedic setReset={setReset} />
         <PacientMedicalRecord />
       </Grid>
       <Grid
         item
         xs={4}
-        heigh={'100%'}
         display={'flex'}
         alignItems={'center'}
         justifyContent={'flex-end'}
         flexDirection={'column'}
       >
-        <Button
-          sx={{ alignSelf: 'flex-end', mr: 3 }}
-          variant={'text'}
-          startIcon={<LogoutIcon />}
-        >
-          <Typography variant={'subtitle1'}>Log out</Typography>
+        <Button onClick={logOut} sx={{ alignSelf: 'flex-end', mr: 3 }}>
+          <Typography>LogOut</Typography>
         </Button>
+
         <Box
           sx={{
             backgroundColor: '#035270',
-            height: '90%',
+            maxHeight: '98vh',
+            minHeight: '98vh',
             width: '70%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
-            justifyContent: 'space-around',
             borderTopLeftRadius: '25px',
             borderTopRightRadius: '25px',
             gap: 3,
@@ -118,58 +130,56 @@ const MedicalRecord = () => {
                   borderRadius: '25px',
                   mt: 2,
                 }}
-                defaultValue={dayjs('2022-04-17')}
+                value={date}
+                onChange={(newValue) => setDate(newValue)}
               />
             </LocalizationProvider>
           </Box>
-
           <Box
             sx={{
-              pl: 2,
-              pr: 2,
+              display: 'flex',
               flexGrow: 1,
-              height: '10%',
               width: '100%',
-              boxSizing: 'border-box',
               overflow: 'auto',
+              flexDirection: 'column',
+              alignItems: 'center',
+              pb: 4,
+              gap: 1,
             }}
-            display={'flex'}
-            flexDirection={'column'}
-            alignItems={'flex-start'}
           >
-            <Typography sx={{ ml: 2 }} color={'#FFFFFF'}>
-              {' '}
-              Activities
-            </Typography>
             <Box
               sx={{
-                width: '100%',
-                border: '1px solid white',
-                borderRadius: '25px',
-                boxSizing: 'border-box',
+                width: '90%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
               }}
             >
-              {renderActivity()}
-              {renderActivity()}
-              {renderActivity()}
-              {renderActivity()}
+              <PacientActivities
+                activities={filterActivities()}
+                isMedic={isMedic}
+              />
             </Box>
-            <Typography sx={{ ml: 2 }} color={'#FFFFFF'}>
-              {' '}
-              Activities
-            </Typography>
             <Box
               sx={{
-                width: '100%',
-                border: '1px solid white',
-                borderRadius: '25px',
-                boxSizing: 'border-box',
+                width: '90%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'flex-start',
               }}
             >
-              {renderActivity()}
-              {renderActivity()}
-              {renderActivity()}
-              {renderActivity()}
+              <Typography sx={{ ml: 2 }} color={'#FFFFFF'}>
+                {' '}
+                Warnings
+              </Typography>
+              <Box
+                sx={{
+                  width: '100%',
+                  border: '1px solid white',
+                  borderRadius: '25px',
+                  boxSizing: 'border-box',
+                }}
+              ></Box>
             </Box>
           </Box>
         </Box>

@@ -2,9 +2,9 @@ import './App.css'
 import { initializeApp } from 'firebase/app'
 
 import PacientsList from './components/PacientsList/PacientsList'
-import { getFirestore } from 'firebase/firestore'
-import { BrowserRouter, Route, Routes, Navigate } from 'react-router-dom'
-import { getAuth } from 'firebase/auth'
+import { doc, getDoc, getFirestore } from 'firebase/firestore'
+import { Route, Routes, useNavigate } from 'react-router-dom'
+import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
 import MedicalRecord from './components/MedicalRecord/MedicalRecord'
 import LogIn from './components/Login/Login'
@@ -20,6 +20,7 @@ import {
   Tooltip,
   Legend,
 } from 'chart.js'
+import { useEffect, useState } from 'react'
 
 ChartJS.register(
   CategoryScale,
@@ -43,16 +44,47 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 export const auth = getAuth(app)
 export const db = getFirestore(app)
+
 function App() {
-  const checkUserLoggedIn = () => {
-    var user = auth.currentUser
-    console.log(user)
-    if (user) {
-      return <Navigate to="/pacients" replace />
-    } else {
-      return <Navigate to="/login" replace />
-    }
+  const [user, setUser] = useState(auth.currentUser)
+  const [isMedic, setIsMedic] = useState(false)
+
+  const navigate = useNavigate()
+
+  const fetchUserClaims = async (id) => {
+    const userClaims = await getDoc(doc(db, 'claims', id))
+    setIsMedic(userClaims.data()?.admin || null)
   }
+
+  useEffect(() => {
+    onAuthStateChanged(auth, async (loggedUser) => {
+      if (loggedUser) {
+        await fetchUserClaims(loggedUser.uid)
+        setUser(loggedUser)
+      } else {
+        setUser(null)
+        setIsMedic(false)
+      }
+    })
+  }, [])
+
+  const checkUserLoggedIn = () => {
+    if (!user) {
+      navigate('/login', { replace: true })
+      return
+    }
+
+    if (isMedic) {
+      navigate('/pacients', { replace: true })
+      return
+    }
+
+    navigate('/me', { replace: true })
+  }
+
+  useEffect(() => {
+    checkUserLoggedIn()
+  }, [user, isMedic])
 
   return (
     <div
@@ -69,17 +101,17 @@ function App() {
       }}
     >
       {' '}
-      <BrowserRouter>
-        <Routes>
-          <Route path="/" element={checkUserLoggedIn()} />
-
-          <Route element={<PacientsList />} path="/pacients" />
-          <Route element={<MedicalRecord />} path="/pacients/:id" />
-          <Route element={<LogIn />} path="/login" />
-          <Route element={<ForgotPassword/>} path="/forgot-password"/>
-          <Route element={<Register />} path="/register" />
-        </Routes>
-      </BrowserRouter>
+      <Routes>
+        <Route element={<MedicalRecord isMedic={isMedic} />} path="/me" />
+        <Route element={<PacientsList isMedic={isMedic} />} path="/pacients" />
+        <Route
+          element={<MedicalRecord isMedic={isMedic} />}
+          path="/pacients/:id"
+        />
+        <Route element={<LogIn />} path="/login" />
+        <Route element={<ForgotPassword />} path="/forgot-password" />
+        <Route element={<Register />} path="/register" />
+      </Routes>
     </div>
   )
 }

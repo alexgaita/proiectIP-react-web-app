@@ -1,8 +1,11 @@
 import React, { useState } from 'react'
-import { NavLink, useNavigate } from 'react-router-dom'
-import { createUserWithEmailAndPassword } from 'firebase/auth'
-import { Grid, TextField, Typography, Button, Box, Link } from '@mui/material'
-import { auth } from '../../App'
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from 'firebase/auth'
+import { Grid, TextField, Typography, Button } from '@mui/material'
+import { auth, db } from '../../App'
+import { doc, setDoc } from 'firebase/firestore'
 
 const Register = () => {
   const [inputFields, setInputFields] = useState([
@@ -15,21 +18,24 @@ const Register = () => {
   ])
   const [error, setError] = useState(false)
 
-  const navigate = useNavigate()
+  const addAdminClaim = async (userId) => {
+    await setDoc(doc(db, 'claims', userId), { admin: true })
+  }
 
   const registerWithEmailAndPassword = async () => {
     try {
-      console.log(inputFields)
-      await createUserWithEmailAndPassword(
+      const user = await createUserWithEmailAndPassword(
         auth,
         inputFields.email,
         inputFields.password
-      ).then((userCredential) => {
-        // Signed in
-        const user = userCredential.user
-        console.log(user)
-      })
-      alert('Success!')
+      )
+      console.log(user.user)
+      await addAdminClaim(user.user.uid)
+      await signInWithEmailAndPassword(
+        auth,
+        inputFields.email,
+        inputFields.password
+      )
     } catch (err) {
       setError(true)
       console.error(err)
@@ -56,8 +62,8 @@ const Register = () => {
           p: 2,
           borderRadius: '25px',
           backgroundColor: 'whitesmoke',
-          border: "1px solid rgba(217, 217, 217, 0.5)",
-          boxShadow: "4px 4px 4px rgba(0, 0, 0, 0.25)"
+          border: '1px solid rgba(217, 217, 217, 0.5)',
+          boxShadow: '4px 4px 4px rgba(0, 0, 0, 0.25)',
         }}
         xs={4}
         justifyContent="space-around"
@@ -122,7 +128,7 @@ const Register = () => {
           }}
         ></TextField>
         <div align="center">
-          {inputFields.password == inputFields.confirmPassword ? (
+          {inputFields.password === inputFields.confirmPassword ? (
             <Button
               variant="contained"
               onClick={registerWithEmailAndPassword}

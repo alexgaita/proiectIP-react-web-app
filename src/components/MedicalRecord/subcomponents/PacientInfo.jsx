@@ -1,7 +1,17 @@
-import React from 'react'
-import { Avatar, Box, Typography } from '@mui/material'
+import React, { useState } from 'react'
+import { Avatar, Box, Button, Typography } from '@mui/material'
+import CreateModal from '../../PacientsList/subcomponents/CreateModal'
 
-const PacientInfo = ({ pacient }) => {
+const PacientInfo = ({ pacient, isMedic, setReset }) => {
+  const [modalOpen, setModalOpen] = useState(false)
+
+  const handleOnClose = (reset) => {
+    if (reset) {
+      setReset(true)
+    }
+    setModalOpen(false)
+  }
+
   return (
     <Box
       display={'flex'}
@@ -10,6 +20,14 @@ const PacientInfo = ({ pacient }) => {
       width={'90%'}
       alignItems={'flex-start'}
     >
+      {modalOpen && (
+        <CreateModal
+          open={modalOpen}
+          handleOnClose={handleOnClose}
+          updateData={pacient}
+          isMedic={isMedic}
+        />
+      )}
       <Typography pl={3} fontWeight={700} color={'#035270'} variant={'h6'}>
         Pacient Info
       </Typography>
@@ -32,9 +50,11 @@ const PacientInfo = ({ pacient }) => {
           flexDirection={'column'}
           justifyContent={'space-around'}
         >
-          <Typography alignSelf={'flex-start'} variant={'subtitle2'} pl={3}>
-            Edit
-          </Typography>
+          <Button onClick={() => setModalOpen(true)}>
+            <Typography alignSelf={'flex-start'} variant={'subtitle2'}>
+              Edit
+            </Typography>
+          </Button>
           <Avatar
             sx={{ width: 100, height: 100 }}
             src={'https://i.pravatar.cc/150'}
