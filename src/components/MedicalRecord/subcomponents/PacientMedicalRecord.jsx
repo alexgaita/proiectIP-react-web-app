@@ -157,9 +157,27 @@ const PacientMedicalRecord = () => {
         alignItems={'flex-start'}
         pt={2}
       >
-        <Typography pl={3} fontWeight={700} color={'#035270'} variant={'h6'}>
-          Medical Record
-        </Typography>
+        <Box sx={{display: 'flex', width: '60%', justifyContent: 'space-between'}}>
+          <Typography pl={3} fontWeight={700} color={'#035270'} variant={'h6'} sx={{alignSelf: 'flex-end'}}>
+            Medical Record
+          </Typography>
+          <Button
+                variant="contained"
+                onClick={handleOpen}
+                sx={{
+                  marginBottom: 1,
+                  maxWidth: '50%',
+                  color: 'whitesmoke',
+                  backgroundColor: '#F27D70',
+                  '&:hover': {
+                    backgroundColor: '#f69c76',
+                    color: '#3c52b2',
+                  },
+                }}
+              >
+                Filter
+              </Button>
+          </Box>
         <Box display={'flex'} width={'100%'} height={'80%'} gap={3}>
           <Box
             display={'flex'}
@@ -175,21 +193,6 @@ const PacientMedicalRecord = () => {
           >
             {/* <Line options={options} data={data_days} /> */}
             {renderChart()}
-            <Button
-              variant="contained"
-              onClick={handleOpen}
-              sx={{
-                maxWidth: '50%',
-                color: 'whitesmoke',
-                backgroundColor: '#F27D70',
-                '&:hover': {
-                  backgroundColor: '#f69c76',
-                  color: '#3c52b2',
-                },
-              }}
-            >
-              Filter
-            </Button>
           </Box>
           <Box
             display={'flex'}
