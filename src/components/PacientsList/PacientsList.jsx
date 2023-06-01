@@ -60,12 +60,15 @@ const PacientsList = ({ isMedic }) => {
         <CreateModal open={modalOpen} handleOnClose={handleOnClose} isMedic />
       )}
       <Box display={'flex'} alignSelf={'flex-end'} mr={5}>
-        <Button
-          variant={'outlined'}
+      <Button
+          sx={{ alignSelf: 'flex-end', mr: 3 }}
+          variant='outlined'
           startIcon={<LogoutIcon />}
           onClick={logOut}
         >
-          <Typography variant={'subtitle1'}>Log out</Typography>
+          <Typography variant={'subtitle1'} sx={{
+            color: '#035270'
+          }}>Log out</Typography>
         </Button>
       </Box>
       <Box
