@@ -1,6 +1,6 @@
-import { Box, Modal, TextField, Typography } from '@mui/material'
+import { Box, Button, Modal, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
-import { setDoc, doc } from 'firebase/firestore'
+import { setDoc, doc, updateDoc } from 'firebase/firestore'
 import { db } from '../../../App'
 import { v4 as uuidv4 } from 'uuid'
 import { DateTimePicker, LocalizationProvider } from '@mui/x-date-pickers'
@@ -14,8 +14,13 @@ const defaultModalData = {
   duration: '',
 }
 
-const CreateActivityModal = ({ open, handleOnClose, userId }) => {
-  const [formData, setFormDate] = useState(defaultModalData)
+const CreateActivityModal = ({
+  open,
+  handleOnClose,
+  userId,
+  updateActivity,
+}) => {
+  const [formData, setFormDate] = useState(updateActivity || defaultModalData)
   const [errorArray, setErrorArray] = useState([])
 
   const handleChangeData = (value, fieldName) => {
@@ -27,8 +32,21 @@ const CreateActivityModal = ({ open, handleOnClose, userId }) => {
     })
   }
 
+  const updateActivityData = async () => {
+    await updateDoc(
+      doc(db, `pacients/${userId}/activities`, updateActivity.id),
+      {
+        ...formData,
+        startTime: formData.startTime.format(),
+      }
+    )
+  }
+
   const addActivity = async () => {
-    await setDoc(doc(db, 'pacients', uuidv4()), formData)
+    await setDoc(doc(db, `pacients/${userId}/activities`, uuidv4()), {
+      ...formData,
+      startTime: formData.startTime.format(),
+    })
   }
 
   const submitFormData = async () => {
@@ -42,14 +60,14 @@ const CreateActivityModal = ({ open, handleOnClose, userId }) => {
 
     if (errors.length) return
 
-    await addActivity()
+    if (updateActivity) {
+      await updateActivityData()
+    } else {
+      await addActivity()
+    }
 
     handleOnClose(true)
   }
-
-  // useEffect(() => {
-  //   console.log(formData)
-  // }, [formData])
 
   const renderTitle = () => {
     return 'Add new Activity'
@@ -143,6 +161,15 @@ const CreateActivityModal = ({ open, handleOnClose, userId }) => {
               handleChangeData(event.target.value, 'description')
             }
           />
+        </Box>
+        <Box display={'flex'} justifyContent={'flex-end'} mt={2}>
+          <Button
+            variant={'outlined'}
+            sx={{ borderRadius: '25px' }}
+            onClick={submitFormData}
+          >
+            Submit
+          </Button>
         </Box>
       </Box>
     </Modal>

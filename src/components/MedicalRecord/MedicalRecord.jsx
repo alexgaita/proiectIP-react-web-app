@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Grid, Typography, Box, Button } from '@mui/material'
 import PacientInfo from './subcomponents/PacientInfo'
-import { collection, doc, getDoc, getDocs } from 'firebase/firestore'
+import { collection, doc, onSnapshot, query } from 'firebase/firestore'
 import { auth, db } from '../../App'
 import PacientMedicalRecord from './subcomponents/PacientMedicalRecord'
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers'
@@ -11,7 +11,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { signOut } from 'firebase/auth'
 import PacientActivities from './subcomponents/PacientActivities'
 import LogoutIcon from '@mui/icons-material/Logout'
-
+import PacientWarnings from './subcomponents/PacientWarnings'
 
 const MedicalRecord = ({ isMedic }) => {
   let { id } = useParams()
@@ -22,24 +22,34 @@ const MedicalRecord = ({ isMedic }) => {
   const [date, setDate] = useState(dayjs())
 
   const fetchPacient = async (pacientId) => {
-    const pacientResponse = await getDoc(doc(db, 'pacients', pacientId))
-    console.log(pacientResponse.data())
-    setPacientData({ ...pacientResponse.data(), id: pacientResponse.id })
-
-    const querySnapshot = await getDocs(
-      collection(db, `pacients`, pacientId, 'activities')
-    )
-    const response = []
-    querySnapshot.forEach((doc) => {
-      // doc.data() is never undefined for query doc snapshots
-      response.push({
-        id: doc.id,
-        ...doc.data(),
-        startTime: dayjs.unix(doc.data().startTime.seconds),
-      })
+    onSnapshot(doc(db, 'pacients', pacientId), (data) => {
+      setPacientData({ ...data.data(), id: data.id })
     })
-    setActivities(response)
-    console.log(response)
+
+    const q = query(collection(db, `/pacients/${pacientId}/activities`))
+    onSnapshot(q, (querySnapshot) => {
+      const activitiesResponse = []
+      querySnapshot.forEach((doc) => {
+        activitiesResponse.push({
+          ...doc.data(),
+          startTime: dayjs(doc.data().startTime),
+          id: doc.id,
+        })
+      })
+      setActivities(activitiesResponse)
+    })
+
+    const qWarnings = query(collection(db, `/pacients/${pacientId}/warnings`))
+    onSnapshot(qWarnings, (querySnapshot) => {
+      // const activitiesResponse = []
+      // querySnapshot.forEach((doc) => {
+      //   activitiesResponse.push({
+      //     ...doc.data(),
+      //     startTime: dayjs(doc.data().startTime),
+      //   })
+      // })
+      // setActivities(activitiesResponse)
+    })
   }
 
   useEffect(() => {
@@ -50,17 +60,6 @@ const MedicalRecord = ({ isMedic }) => {
     if (!auth.currentUser) return
     fetchPacient(auth.currentUser.uid)
   }, [id, isMedic])
-
-  useEffect(() => {
-    if (!reset) return
-    setReset(false)
-    if (isMedic) {
-      fetchPacient(id)
-      return
-    }
-    if (!auth.currentUser) return
-    fetchPacient(auth.currentUser.uid)
-  }, [reset])
 
   const logOut = async () => {
     await signOut(auth)
@@ -86,14 +85,35 @@ const MedicalRecord = ({ isMedic }) => {
         alignItems={'flex-start'}
         pl={10}
       >
-        <Box display={'flex'} flexGrow={1} alignItems={'center'}>
+        <Box
+          display={'flex'}
+          width={'100%'}
+          flexGrow={1}
+          alignItems={'center'}
+          justifyContent={'space-between'}
+        >
           <Typography fontWeight={700} color={'#035270'} variant={'h4'}>
             {isMedic
               ? `About ${pacientData.firstName} ${pacientData.lastName}`
               : `Hello ${pacientData.firstName} ${pacientData.lastName}`}
           </Typography>
+          <Button
+            sx={{ mr: 10 }}
+            variant="outlined"
+            startIcon={<LogoutIcon />}
+            onClick={logOut}
+          >
+            <Typography
+              variant={'subtitle1'}
+              sx={{
+                color: '#035270',
+              }}
+            >
+              Log out
+            </Typography>
+          </Button>
         </Box>
-        <PacientInfo pacient={pacientData} isMedic setReset={setReset} />
+        <PacientInfo pacient={pacientData} isMedic />
         <PacientMedicalRecord />
       </Grid>
       <Grid
@@ -104,17 +124,6 @@ const MedicalRecord = ({ isMedic }) => {
         justifyContent={'flex-end'}
         flexDirection={'column'}
       >
-        <Button
-          sx={{ alignSelf: 'flex-end', mr: 3 }}
-          variant='outlined'
-          startIcon={<LogoutIcon />}
-          onClick={logOut}
-        >
-          <Typography variant={'subtitle1'} sx={{
-            color: '#035270'
-          }}>Log out</Typography>
-        </Button>
-
         <Box
           sx={{
             backgroundColor: '#035270',
@@ -167,6 +176,7 @@ const MedicalRecord = ({ isMedic }) => {
               <PacientActivities
                 activities={filterActivities()}
                 isMedic={isMedic}
+                userId={isMedic ? id : auth.currentUser.uid}
               />
             </Box>
             <Box
@@ -177,18 +187,10 @@ const MedicalRecord = ({ isMedic }) => {
                 alignItems: 'flex-start',
               }}
             >
-              <Typography sx={{ ml: 2 }} color={'#FFFFFF'}>
-                {' '}
-                Warnings
-              </Typography>
-              <Box
-                sx={{
-                  width: '100%',
-                  border: '1px solid white',
-                  borderRadius: '25px',
-                  boxSizing: 'border-box',
-                }}
-              ></Box>
+              <PacientWarnings
+                isMedic={isMedic}
+                userId={isMedic ? id : auth.currentUser.uid}
+              />
             </Box>
           </Box>
         </Box>

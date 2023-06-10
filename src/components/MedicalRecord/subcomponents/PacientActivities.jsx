@@ -3,14 +3,19 @@ import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import CreateActivityModal from './CreateActivityModal'
 import AddIcon from '@mui/icons-material/Add'
 
-const PacientActivities = ({ activities, isMedic }) => {
+const PacientActivities = ({ activities, isMedic, userId }) => {
   const [modalOpen, setModalOpen] = useState(false)
+  const [updateData, setUpdateData] = useState(null)
   const renderActivity = (activity) => {
     return (
       <Tooltip title={activity.description}>
         <Box
           key={activity.id}
           display={'flex'}
+          onClick={() => {
+            setUpdateData({ ...activity })
+            setModalOpen(true)
+          }}
           alignItems={'center'}
           sx={{
             height: 50,
@@ -70,10 +75,17 @@ const PacientActivities = ({ activities, isMedic }) => {
           </IconButton>
         </Box>
       </Box>
-      <CreateActivityModal
-        open={modalOpen}
-        handleOnClose={() => setModalOpen(false)}
-      />
+      {modalOpen && (
+        <CreateActivityModal
+          open={modalOpen}
+          handleOnClose={() => {
+            setModalOpen(false)
+            setUpdateData(null)
+          }}
+          userId={userId}
+          updateActivity={updateData}
+        />
+      )}
       <Box
         sx={{
           minHeight: 100,

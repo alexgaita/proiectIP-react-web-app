@@ -1,17 +1,23 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Typography,
   Button,
   Modal,
   Grid,
-  FormControl,
-  FormLabel,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
+  TableContainer,
+  Paper,
+  TableCell,
+  Table,
+  TableBody,
+  TableRow,
+  TableHead,
 } from '@mui/material'
 import { Line } from 'react-chartjs-2'
+import { collection, query, onSnapshot, orderBy } from 'firebase/firestore'
+import { db } from '../../../App'
+import dayjs from 'dayjs'
+import 'chartjs-plugin-zoom'
 
 const options = {
   responsive: true,
@@ -21,7 +27,7 @@ const options = {
     },
     title: {
       display: true,
-      text: 'EKG Chart',
+      text: 'Info Chart',
     },
   },
 }
@@ -64,6 +70,7 @@ const data_weeks = {
 const PacientMedicalRecord = () => {
   const [open, setOpen] = React.useState(false)
   const [option, setOption] = useState('days')
+  const [measurements, setMeasurements] = useState([])
 
   const handleOpen = () => {
     setOpen(true)
@@ -74,13 +81,77 @@ const PacientMedicalRecord = () => {
   }
 
   const renderChart = () => {
-    if (option === 'days') {
-      return <Line options={options} data={data_days} />
+    const dataForToday = measurements
+      .filter((obj) => dayjs().diff(obj.date, 'hours') < 12)
+      .sort((a, b) => a.date.diff(b.date, 'second'))
+
+    console.log('today data', dataForToday)
+
+    let labels = []
+    let temperatureData = []
+    let humidityData = []
+
+    dataForToday.forEach((data) => {
+      const { date, temperature, humidity } = data
+      const dateFormat = date.format('HH:mm')
+      if (labels.find((label) => label === dateFormat)) {
+        return
+      }
+      labels.push(date.format('HH:mm'))
+      temperatureData.push(temperature)
+      humidityData.push(humidity)
+    })
+
+    labels = [...new Set(labels)]
+    console.log(labels)
+
+    const chartData = {
+      labels,
+      datasets: [
+        {
+          label: 'Temperature',
+          data: temperatureData,
+          borderColor: 'rgb(255, 99, 10)',
+          backgroundColor: 'rgba(255, 99, 10, 0.5)',
+        },
+        {
+          label: 'Humidity',
+          data: humidityData,
+          borderColor: 'rgb(255, 99, 132)',
+          backgroundColor: 'rgba(255, 99, 132, 0.5)',
+        },
+      ],
     }
-    if (option === 'weeks') {
-      return <Line options={options} data={data_weeks} />
-    }
+
+    return <Line options={options} data={chartData} />
   }
+
+  useEffect(() => {
+    const q = query(
+      collection(db, '/pacients/06aa58f2-9b72-4314-acbb-4237c995e533/measure'),
+      orderBy('date', 'desc')
+    )
+    onSnapshot(q, (querySnapshot) => {
+      const measures = []
+      querySnapshot.forEach((doc) => {
+        measures.push({ ...doc.data(), date: dayjs(doc.data().date) })
+      })
+      setMeasurements(measures)
+      console.log('Current measurements', measures)
+    })
+  }, [])
+
+  function createData(name, calories, fat, carbs, protein) {
+    return { name, calories, fat, carbs, protein }
+  }
+
+  const rows = [
+    createData('Frozen yoghurt', 159, 6.0, 24, 4.0),
+    createData('Ice cream sandwich', 237, 9.0, 37, 4.3),
+    createData('Eclair', 262, 16.0, 24, 6.0),
+    createData('Cupcake', 305, 3.7, 67, 4.3),
+    createData('Gingerbread', 356, 16.0, 49, 3.9),
+  ]
 
   const body = (
     <Grid
@@ -93,8 +164,8 @@ const PacientMedicalRecord = () => {
         top: '50%',
         left: '50%',
         transform: 'translate(-50%, -50%)',
-        width: '30%',
-        height: '30%',
+        width: '80%',
+        height: '80%',
         borderRadius: '10px',
         padding: 3,
         pl: 5,
@@ -113,33 +184,41 @@ const PacientMedicalRecord = () => {
           width: '100%',
           justifyContent: 'center',
           alignItems: 'flex-start',
-          height: '100%'
+          height: '100%',
         }}
       >
-        <FormControl sx={{alignItems: 'center'}}>
-          <FormLabel id="demo-controlled-radio-buttons-group" sx={{marginBottom: 4}}>
-            <Typography variant='h4' sx={{color:'#035270'}}>Choose an option</Typography>
-            
-          </FormLabel>
-          <RadioGroup
-            aria-labelledby="demo-controlled-radio-buttons-group"
-            name="controlled-radio-buttons-group"
-            value={option}
-            onChange={(event) => {
-              setOption(event.target.value)
-            }}
-            
-          >
-            <Box display='flex' gap={3}>
-              <FormControlLabel value="days" control={<Radio />} label={ <Typography  sx={{fontSize: '20px'}}>Days</Typography>} />
-              <FormControlLabel
-                value="weeks"
-                control={<Radio />}
-                label={ <Typography  sx={{fontSize: '20px'}}>Weeks</Typography>}
-              />
-            </Box>
-          </RadioGroup>
-        </FormControl>
+        <Typography variant="h4" sx={{ color: '#035270' }}>
+          All Data
+        </Typography>
+        <TableContainer component={Paper}>
+          <Table sx={{ minWidth: 650 }} aria-label="simple table">
+            <TableHead>
+              <TableRow>
+                <TableCell>Dessert (100g serving)</TableCell>
+                <TableCell align="right">Calories</TableCell>
+                <TableCell align="right">Fat&nbsp;(g)</TableCell>
+                <TableCell align="right">Carbs&nbsp;(g)</TableCell>
+                <TableCell align="right">Protein&nbsp;(g)</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {rows.map((row) => (
+                <TableRow
+                  key={row.name}
+                  sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
+                >
+                  <TableCell component="th" scope="row">
+                    {row.name}
+                  </TableCell>
+                  <TableCell align="right">{row.calories}</TableCell>
+                  <TableCell align="right">{row.fat}</TableCell>
+                  <TableCell align="right">{row.carbs}</TableCell>
+                  <TableCell align="right">{row.protein}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       </Grid>
     </Grid>
   )
@@ -157,27 +236,39 @@ const PacientMedicalRecord = () => {
         alignItems={'flex-start'}
         pt={2}
       >
-        <Box sx={{display: 'flex', width: '60%', justifyContent: 'space-between'}}>
-          <Typography pl={3} fontWeight={700} color={'#035270'} variant={'h6'} sx={{alignSelf: 'flex-end'}}>
+        <Box
+          sx={{
+            display: 'flex',
+            width: '60%',
+            justifyContent: 'space-between',
+          }}
+        >
+          <Typography
+            pl={3}
+            fontWeight={700}
+            color={'#035270'}
+            variant={'h6'}
+            sx={{ alignSelf: 'flex-end' }}
+          >
             Medical Record
           </Typography>
           <Button
-                variant="contained"
-                onClick={handleOpen}
-                sx={{
-                  marginBottom: 1,
-                  maxWidth: '50%',
-                  color: 'whitesmoke',
-                  backgroundColor: '#F27D70',
-                  '&:hover': {
-                    backgroundColor: '#f69c76',
-                    color: '#3c52b2',
-                  },
-                }}
-              >
-                Filter
-              </Button>
-          </Box>
+            variant="contained"
+            onClick={handleOpen}
+            sx={{
+              marginBottom: 1,
+              maxWidth: '50%',
+              color: 'whitesmoke',
+              backgroundColor: '#F27D70',
+              '&:hover': {
+                backgroundColor: '#f69c76',
+                color: '#3c52b2',
+              },
+            }}
+          >
+            All data
+          </Button>
+        </Box>
         <Box display={'flex'} width={'100%'} height={'80%'} gap={3}>
           <Box
             display={'flex'}
@@ -242,13 +333,21 @@ const PacientMedicalRecord = () => {
                   Now
                 </Typography>
                 <Typography fontSize={20} fontWeight={700} color={'#D9D9D9'}>
-                  36.6 °C
+                  {measurements[0]?.temperature || 0}°C
                 </Typography>
               </Box>
               <Box display={'flex'} flexGrow={3} flexDirection={'column'}>
-                <Typography color={'#025372'}>36.6 °C - 5mins ago</Typography>
-                <Typography color={'#025372'}>36.6 °C - 5mins ago</Typography>
-                <Typography color={'#025372'}>36.6 °C - 5mins ago</Typography>
+                {measurements.slice(1, 4).map((data) => {
+                  return (
+                    <Typography color={'#025372'}>
+                      {data?.temperature || 0} °C -{' '}
+                      {dayjs().diff(dayjs(data.date), 'minute') > 60
+                        ? dayjs().diff(dayjs(data.date), 'hour') + ' hours ago'
+                        : dayjs().diff(dayjs(data.date), 'minute') +
+                          ' mins ago'}
+                    </Typography>
+                  )
+                })}
               </Box>
             </Box>
             <Typography
@@ -287,13 +386,21 @@ const PacientMedicalRecord = () => {
                   Now
                 </Typography>
                 <Typography fontSize={20} fontWeight={700} color={'#D9D9D9'}>
-                  36.6 bpm
+                  {measurements[0]?.pulse || 0} bpm
                 </Typography>
               </Box>
               <Box display={'flex'} flexGrow={3} flexDirection={'column'}>
-                <Typography color={'#025372'}>83 bpm - 1min ago</Typography>
-                <Typography color={'#025372'}>83 bpm - 1min ago</Typography>
-                <Typography color={'#025372'}>83 bpm - 1min ago</Typography>
+                {measurements.slice(1, 4).map((data) => {
+                  return (
+                    <Typography color={'#025372'}>
+                      {data?.pulse || 0} bpm -{' '}
+                      {dayjs().diff(dayjs(data.date), 'minute') > 60
+                        ? dayjs().diff(dayjs(data.date), 'hour') + ' hours ago'
+                        : dayjs().diff(dayjs(data.date), 'minute') +
+                          ' mins ago'}
+                    </Typography>
+                  )
+                })}
               </Box>
             </Box>
           </Box>

@@ -19,7 +19,12 @@ const Register = () => {
   const [error, setError] = useState(false)
 
   const addAdminClaim = async (userId) => {
-    await setDoc(doc(db, 'claims', userId), { admin: true })
+    await setDoc(doc(db, 'doctors', userId), {
+      admin: true,
+      name: inputFields.name,
+      gender: true,
+      info: 'Cardiologie',
+    })
   }
 
   const registerWithEmailAndPassword = async () => {

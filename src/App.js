@@ -52,7 +52,7 @@ function App() {
   const navigate = useNavigate()
 
   const fetchUserClaims = async (id) => {
-    const userClaims = await getDoc(doc(db, 'claims', id))
+    const userClaims = await getDoc(doc(db, 'doctors', id))
     setIsMedic(userClaims.data()?.admin || null)
   }
 

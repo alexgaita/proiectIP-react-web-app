@@ -1,8 +1,4 @@
-import {
-  connectAuthEmulator,
-  sendPasswordResetEmail,
-  confirmPasswordReset,
-} from 'firebase/auth'
+import { sendPasswordResetEmail, confirmPasswordReset } from 'firebase/auth'
 
 import { auth } from '../App'
 
@@ -14,8 +10,8 @@ var actionCodeSettings = {
   // After password reset, the user will be give the ability to go back
   // to this page.
   url: 'http://localhost:3000/login',
-  handleCodeInApp: false
-};
+  handleCodeInApp: false,
+}
 
 export const passwordReset = async (email) => {
   return await sendPasswordResetEmail(auth, email, actionCodeSettings)
