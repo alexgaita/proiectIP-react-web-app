@@ -2,7 +2,13 @@ import React, { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { Grid, Typography, Box, Button } from '@mui/material'
 import PacientInfo from './subcomponents/PacientInfo'
-import { collection, doc, onSnapshot, query } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  onSnapshot,
+  query,
+  updateDoc,
+} from 'firebase/firestore'
 import { auth, db } from '../../App'
 import PacientMedicalRecord from './subcomponents/PacientMedicalRecord'
 import { DateCalendar, LocalizationProvider } from '@mui/x-date-pickers'
@@ -12,13 +18,14 @@ import { signOut } from 'firebase/auth'
 import PacientActivities from './subcomponents/PacientActivities'
 import LogoutIcon from '@mui/icons-material/Logout'
 import PacientWarnings from './subcomponents/PacientWarnings'
+import { useSnackbar } from 'notistack'
 
 const MedicalRecord = ({ isMedic }) => {
   let { id } = useParams()
+  const { enqueueSnackbar } = useSnackbar()
 
   const [pacientData, setPacientData] = useState(null)
   const [activities, setActivities] = useState(null)
-  const [reset, setReset] = useState(false)
   const [date, setDate] = useState(dayjs())
 
   const fetchPacient = async (pacientId) => {
@@ -38,19 +45,37 @@ const MedicalRecord = ({ isMedic }) => {
       })
       setActivities(activitiesResponse)
     })
-
-    const qWarnings = query(collection(db, `/pacients/${pacientId}/warnings`))
-    onSnapshot(qWarnings, (querySnapshot) => {
-      // const activitiesResponse = []
-      // querySnapshot.forEach((doc) => {
-      //   activitiesResponse.push({
-      //     ...doc.data(),
-      //     startTime: dayjs(doc.data().startTime),
-      //   })
-      // })
-      // setActivities(activitiesResponse)
-    })
   }
+
+  const [raiseAlarm, setRaiseAlarm] = useState(false)
+
+  useEffect(() => {
+    if (raiseAlarm) {
+      enqueueSnackbar('Please check you parameters, you have a warning', {
+        variant: 'warning',
+      })
+    }
+    setRaiseAlarm(false)
+  }, [enqueueSnackbar, raiseAlarm])
+
+  useEffect(() => {
+    const alertsQuery = query(collection(db, `alerts`))
+    onSnapshot(alertsQuery, (querySnapshot) => {
+      const userId = isMedic ? id : auth.currentUser?.uid || 0
+      querySnapshot.forEach(async (snapshot) => {
+        if (snapshot.id === userId) {
+          const sendAlarm = snapshot.data()?.sendAlarm
+          console.log(sendAlarm)
+          if (sendAlarm) {
+            setRaiseAlarm(true)
+            await updateDoc(doc(db, `alerts`, userId), {
+              sendAlarm: false,
+            })
+          }
+        }
+      })
+    })
+  }, [id, isMedic])
 
   useEffect(() => {
     if (isMedic) {
@@ -114,7 +139,9 @@ const MedicalRecord = ({ isMedic }) => {
           </Button>
         </Box>
         <PacientInfo pacient={pacientData} isMedic />
-        <PacientMedicalRecord />
+        <PacientMedicalRecord
+          userId={isMedic ? id : auth.currentUser?.uid || 0}
+        />
       </Grid>
       <Grid
         item
@@ -176,7 +203,7 @@ const MedicalRecord = ({ isMedic }) => {
               <PacientActivities
                 activities={filterActivities()}
                 isMedic={isMedic}
-                userId={isMedic ? id : auth.currentUser.uid}
+                userId={isMedic ? id : auth.currentUser?.uid || 0}
               />
             </Box>
             <Box
@@ -189,7 +216,7 @@ const MedicalRecord = ({ isMedic }) => {
             >
               <PacientWarnings
                 isMedic={isMedic}
-                userId={isMedic ? id : auth.currentUser.uid}
+                userId={isMedic ? id : auth.currentUser?.uid || 0}
               />
             </Box>
           </Box>

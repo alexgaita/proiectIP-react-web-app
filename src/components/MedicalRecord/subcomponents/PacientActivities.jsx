@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import { Box, IconButton, Tooltip, Typography } from '@mui/material'
 import CreateActivityModal from './CreateActivityModal'
 import AddIcon from '@mui/icons-material/Add'
+import AlarmOnIcon from '@mui/icons-material/AlarmOn'
 
 const PacientActivities = ({ activities, isMedic, userId }) => {
   const [modalOpen, setModalOpen] = useState(false)
@@ -40,8 +41,16 @@ const PacientActivities = ({ activities, isMedic, userId }) => {
             <Typography color={'white'} fontWeight={700}>
               {activity.name}
             </Typography>
-            <Typography color={'white'}>
-              Duration: {activity.duration} mins
+            <Typography
+              color={'white'}
+              alignItems={'center'}
+              display={'flex'}
+              fontWeight={500}
+              gap={1}
+            >
+              {activity.duration} mins
+              <AlarmOnIcon />
+              {activity.startTime.format('HH:mm a')}
             </Typography>
           </Box>
         </Box>

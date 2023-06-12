@@ -17,7 +17,6 @@ const LogIn = () => {
 
   const logInWithEmailAndPassword = async () => {
     try {
-      console.log(inputFields)
       await signInWithEmailAndPassword(
         auth,
         inputFields.email,

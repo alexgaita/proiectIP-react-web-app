@@ -11,7 +11,6 @@ import { signOut } from 'firebase/auth'
 const PacientsList = ({ isMedic }) => {
   const [modalOpen, setModalOpen] = useState(false)
   const [pacients, setPacients] = useState(null)
-  const [reset, setReset] = useState(false)
 
   const fetchPacients = async () => {
     const querySnapshot = await getDocs(collection(db, 'pacients'))
@@ -24,8 +23,7 @@ const PacientsList = ({ isMedic }) => {
     console.log(response)
   }
 
-  const handleOnClose = (reset) => {
-    if (reset) setReset(true)
+  const handleOnClose = () => {
     setModalOpen(false)
   }
 
@@ -36,12 +34,6 @@ const PacientsList = ({ isMedic }) => {
   useEffect(() => {
     fetchPacients()
   }, [])
-
-  useEffect(() => {
-    if (!reset) return
-    fetchPacients()
-    setReset(false)
-  }, [reset])
 
   if (!pacients) return null
   return (
@@ -57,18 +49,27 @@ const PacientsList = ({ isMedic }) => {
       }}
     >
       {modalOpen && (
-        <CreateModal open={modalOpen} handleOnClose={handleOnClose} isMedic />
+        <CreateModal
+          open={modalOpen}
+          handleOnClose={handleOnClose}
+          isMedic={isMedic}
+        />
       )}
       <Box display={'flex'} alignSelf={'flex-end'} mr={5}>
-      <Button
+        <Button
           sx={{ alignSelf: 'flex-end', mr: 3 }}
-          variant='outlined'
+          variant="outlined"
           startIcon={<LogoutIcon />}
           onClick={logOut}
         >
-          <Typography variant={'subtitle1'} sx={{
-            color: '#035270'
-          }}>Log out</Typography>
+          <Typography
+            variant={'subtitle1'}
+            sx={{
+              color: '#035270',
+            }}
+          >
+            Log out
+          </Typography>
         </Button>
       </Box>
       <Box

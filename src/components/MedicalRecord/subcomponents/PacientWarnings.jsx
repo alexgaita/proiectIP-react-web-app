@@ -47,24 +47,34 @@ const PacientWarnings = ({ isMedic, userId }) => {
           minHeight: 50,
           gap: 3,
           width: '100%',
-          ml: 3,
+          ml: 2,
         }}
       >
         <Box
           display={'flex'}
           flexDirection={'column'}
           alignItems={'flex-start'}
+          gap={1}
         >
           {Object.keys(warningData)
             .sort()
             .map((key) => {
               return (
                 <Box display={'flex'} alignItems={'center'} gap={1}>
-                  <Typography width={90} color={'white'} fontWeight={700}>
+                  <Typography
+                    textAlign={'left'}
+                    width={90}
+                    color={'white'}
+                    fontWeight={700}
+                  >
                     {key}
                   </Typography>
                   <Chip
-                    sx={{ width: 90 }}
+                    sx={{
+                      width: 90,
+                      ml: 1,
+                      backgroundColor: 'rgba(255, 255, 255, 0.27)',
+                    }}
                     label={
                       <Typography color={'white'} fontWeight={200}>
                         min: {warningData[key][0]}
@@ -72,7 +82,10 @@ const PacientWarnings = ({ isMedic, userId }) => {
                     }
                   />
                   <Chip
-                    sx={{ width: 90 }}
+                    sx={{
+                      width: 90,
+                      backgroundColor: 'rgba(255, 255, 255, 0.27)',
+                    }}
                     label={
                       <Typography color={'white'} fontWeight={200}>
                         max: {warningData[key][1]}

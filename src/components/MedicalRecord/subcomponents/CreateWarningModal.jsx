@@ -86,7 +86,7 @@ const CreateWarningModal = ({ open, handleOnClose, userId, updateWarning }) => {
           left: '50%',
           transform: 'translate(-50%, -50%)',
           width: '30%',
-          height: '70%',
+          height: '50%',
           borderRadius: '10px',
           padding: 3,
           pl: 5,

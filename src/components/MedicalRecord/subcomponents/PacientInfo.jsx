@@ -2,13 +2,10 @@ import React, { useState } from 'react'
 import { Avatar, Box, Button, Typography } from '@mui/material'
 import CreateModal from '../../PacientsList/subcomponents/CreateModal'
 
-const PacientInfo = ({ pacient, isMedic, setReset }) => {
+const PacientInfo = ({ pacient, isMedic }) => {
   const [modalOpen, setModalOpen] = useState(false)
 
-  const handleOnClose = (reset) => {
-    if (reset) {
-      setReset(true)
-    }
+  const handleOnClose = () => {
     setModalOpen(false)
   }
 

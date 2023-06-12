@@ -2,7 +2,15 @@ import './App.css'
 import { initializeApp } from 'firebase/app'
 
 import PacientsList from './components/PacientsList/PacientsList'
-import { doc, getDoc, getFirestore } from 'firebase/firestore'
+import {
+  collection,
+  doc,
+  getDoc,
+  getFirestore,
+  onSnapshot,
+  orderBy,
+  query,
+} from 'firebase/firestore'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 
@@ -21,6 +29,7 @@ import {
   Legend,
 } from 'chart.js'
 import { useEffect, useState } from 'react'
+import dayjs from 'dayjs'
 
 ChartJS.register(
   CategoryScale,

@@ -102,6 +102,7 @@ const CreateModal = ({ open, handleOnClose, updateData, isMedic }) => {
         <Box pb={2}>
           <Typography variant={'h6'}>{renderTitle()}</Typography>
         </Box>
+
         <Box display={'flex'} gap={2}>
           <Box display={'flex'} flexDirection={'column'} flexGrow={1}>
             <Typography variant={'subtitle1'}>First Name*</Typography>
@@ -119,6 +120,7 @@ const CreateModal = ({ open, handleOnClose, updateData, isMedic }) => {
               }
             />
           </Box>
+
           <Box display={'flex'} flexDirection={'column'} flexGrow={1}>
             <Typography variant={'subtitle1'}>Last Name*</Typography>
             <TextField
@@ -327,15 +329,15 @@ const CreateModal = ({ open, handleOnClose, updateData, isMedic }) => {
               }
             />
           </Box>
-        </Box>
-        <Box display={'flex'} justifyContent={'flex-end'} mt={2}>
-          <Button
-            variant={'outlined'}
-            sx={{ borderRadius: '25px' }}
-            onClick={submitFormData}
-          >
-            Submit
-          </Button>
+          <Box display={'flex'} justifyContent={'flex-end'} mt={2}>
+            <Button
+              variant={'outlined'}
+              sx={{ borderRadius: '25px' }}
+              onClick={submitFormData}
+            >
+              Submit
+            </Button>
+          </Box>
         </Box>
       </Box>
     </Modal>
